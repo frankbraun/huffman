@@ -16,6 +16,10 @@ type Options struct {
 	// Negative values mean not to use a sliding window, that is, symbol table is
 	// calculated based on all previously encountered symbols.
 	WinSize int
+
+	// BitWidth specifies allowed bit width of values.
+	// 0 means the default width of 8.
+	BitWidth byte
 }
 
 // checkOptions returns a new Options where "missing" fields (with zero value) are set to default values.
@@ -29,6 +33,10 @@ func checkOptions(o *Options) *Options {
 
 	if o2.WinSize == 0 {
 		o2.WinSize = 2048
+	}
+
+	if o2.BitWidth == 0 {
+		o2.BitWidth = 8
 	}
 
 	return o2

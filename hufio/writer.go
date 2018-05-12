@@ -30,7 +30,8 @@ type Writer interface {
 // writer is the Huffman writer implementation.
 type writer struct {
 	*symbols
-	bw bitio.Writer
+	bw       bitio.Writer
+	bitWidth byte
 }
 
 // NewWriter returns a new Writer using the specified io.Writer as the output,
@@ -47,7 +48,7 @@ func NewWriter(out io.Writer) Writer {
 // Transmitting the Options has to be done manually if needed.
 func NewWriterOptions(out io.Writer, o *Options) Writer {
 	o = checkOptions(o)
-	return &writer{symbols: newSymbols(o), bw: bitio.NewWriter(out)}
+	return &writer{symbols: newSymbols(o), bw: bitio.NewWriter(out), bitWidth: o.BitWidth}
 }
 
 // Write implements io.Writer.
@@ -71,7 +72,7 @@ func (w *writer) WriteByte(b byte) (err error) {
 			return
 		}
 		// ...and the new value
-		if err = w.bw.WriteByte(b); err != nil {
+		if err = w.bw.WriteBits(uint64(b), w.bitWidth); err != nil {
 			return
 		}
 		w.insert(value)

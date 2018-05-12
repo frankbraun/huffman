@@ -26,7 +26,8 @@ type Reader interface {
 // reader is the Huffman reader implementation.
 type reader struct {
 	*symbols
-	br bitio.Reader
+	br       bitio.Reader
+	bitWidth byte
 }
 
 // NewReader returns a new Reader using the specified io.Reader as the input (source),
@@ -43,7 +44,7 @@ func NewReader(in io.Reader) Reader {
 // Transmitting the Options has to be done manually if needed.
 func NewReaderOptions(in io.Reader, o *Options) Reader {
 	o = checkOptions(o)
-	return &reader{symbols: newSymbols(o), br: bitio.NewReader(in)}
+	return &reader{symbols: newSymbols(o), br: bitio.NewReader(in), bitWidth: o.BitWidth}
 }
 
 // Read implements io.Reader.
@@ -74,9 +75,12 @@ func (r *reader) ReadByte() (b byte, err error) {
 
 	switch node.Value {
 	case newValue:
-		if b, err = br.ReadByte(); err != nil {
+		var u uint64
+		u, err = br.ReadBits(r.bitWidth)
+		if err != nil {
 			return
 		}
+		b = byte(u)
 		r.insert(huffman.ValueType(b))
 		return
 	case eofValue:
